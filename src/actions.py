@@ -15,7 +15,7 @@ async def create_flight(future: asyncio.Future, db: Session, flight: dict):
     db.commit()
     db.refresh(db_flight)
     db.refresh(db_flight_segment)
-    await db_flight
+    future.set_result(db_flight)
 
 
 async def create_segment(future: asyncio.Future, db: Session, segment: dict):
@@ -33,6 +33,7 @@ async def create_segment(future: asyncio.Future, db: Session, segment: dict):
     db.add(db_segment)
     db.commit()
     db.refresh(db_segment)
+    future.set_result(db_segment)
 
 
 async def create_booking(future: asyncio.Future, db: Session, booking: dict):
@@ -48,3 +49,9 @@ async def create_booking(future: asyncio.Future, db: Session, booking: dict):
     db.commit()
     db.refresh(db_booking)
     db.refresh(db_booking_flight)
+    future.set_result(db_booking)
+
+
+async def get_booking(future: asyncio.Future, db: Session, booking_id: int):
+    query = db.query(models.Booking).filter(models.Booking.id == booking_id).first()
+    future.set_result(query)

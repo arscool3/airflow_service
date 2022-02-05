@@ -1,30 +1,10 @@
-import json
-
-from fastapi import Depends, FastAPI
+import asyncio
 from sqlalchemy.orm import Session
 
-from src.crud import create_flight, create_booking, create_segment
-from src.database import SessionLocal, engine
-from src import models
-
-models.Base.metadata.create_all(bind=engine)
-
-app = FastAPI()
+from src.actions import create_flight, create_booking, create_segment, get_booking
 
 
-async def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-
-@app.post('/search')
-async def search(db: Session = Depends(get_db)):
-    file = open('src/response_a.json')
-    json_data = json.load(file)
-    booking_list = list(json_data)
+async def insert_data(db: Session, booking_list):
     segment_id = 0
     flight_id = 0
     booking_id = 0
@@ -46,12 +26,14 @@ async def search(db: Session = Depends(get_db)):
                            'dep_at': dep_at,
                            'arr_airport': arr_airport,
                            'arr_at': arr_at}
-                await create_segment(db, segment)
+                segment_future = asyncio.Future()
+                await create_segment(segment_future, db, segment)
             flight_id += 1
             flight = {'id': flight_id,
                       'duration': flight['duration'],
                       'segment_id': segment_id}
-            await create_flight(db, flight)
+            flight_future = asyncio.Future()
+            await create_flight(flight_future, db, flight)
         booking_id += 1
         booking = {'id': booking_id,
                    'flight_id': flight_id,
@@ -59,4 +41,13 @@ async def search(db: Session = Depends(get_db)):
                    'validating_airline': booking['validating_airline'],
                    'total_price': booking['pricing']['total'],
                    'currency': booking['pricing']['currency']}
-        await create_booking(db, booking)
+        booking_future = asyncio.Future()
+        await create_booking(booking_future, db, booking)
+
+
+async def get_data(db: Session, booking_id):
+    future = asyncio.Future()
+    await get_booking(future, db, booking_id)
+    col = await future
+    return col
+
