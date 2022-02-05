@@ -1,6 +1,7 @@
 import asyncio
 import json
-from pprint import pprint
+import uvicorn
+import requests
 
 from fastapi import Depends, FastAPI
 from sqlalchemy.orm import Session
@@ -24,35 +25,38 @@ async def get_db():
         db.close()
 
 
-@app.post('/insert_data')
-async def search(db: Session = Depends(get_db)):
-    file = open('src/data/response_a.json')
-    json_data = json.load(file)
+async def get_response_a(start_date: int, end_date: int, db: Session):
+    req = requests.post(f'http://127.0.0.1:9001/search/from/{start_date}/to/{end_date}/')
+    json_data = req.json()
     booking_list = list(json_data)
 
     await insert_data(db, booking_list)
 
 
-@app.post('/search')
-async def search(db: Session = Depends(get_db)):
-    await task(db)
-    loop = asyncio.get_event_loop()
-    tasks = [loop.create_task(task(db)),
-             loop.create_task(print())]
-    wait_tasks = asyncio.wait(tasks)
-    loop.run_until_complete(wait_tasks)
-    loop.close()
+async def get_response_b(start_date: int, end_date: int, db: Session):
+    req = requests.post(f'http://127.0.0.1:9002/search/from/{start_date}/to/{end_date}/')
+    json_data = req.json()
+    booking_list = list(json_data)
+
+    await insert_data(db, booking_list)
 
 
-async def print():
-    pprint(len(bookings))
-    return len(bookings)
+async def get_responses(start_date: int, end_date: int, db: Session):
+    await get_response_a(start_date, end_date, db)
+    await get_response_b(start_date, end_date, db)
 
 
-@app.post('/task')
-async def task(db: Session = Depends(get_db)):
-    _id = 0
-    _id += 1
-    res = await get_data(db, _id)
-    bookings.append(res)
-    await asyncio.sleep(1)
+@app.post('/search/from/{start_date}/end/{end_date}')
+async def search(start_date: int, end_date: int, db: Session = Depends(get_db)):
+    await get_responses(start_date, end_date, db)
+
+
+@app.post('/search/{booking_id}')
+async def search(booking_id: int, db: Session = Depends(get_db)):
+    res = await get_data(db, booking_id)
+    await asyncio.sleep(30)
+    return res
+
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=9000)
