@@ -24,6 +24,7 @@ def test_init_flight():
     assert flight.id == 1
     assert flight.duration == 1500
 
+
 def test_init_segment():
     test_datetime = datetime.now(tz=timezone('Asia/Almaty'))
     segment = Segment(id=1,

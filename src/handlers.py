@@ -1,14 +1,18 @@
 import asyncio
 import json
+import uuid
+
 import uvicorn
 import requests
+import xmltodict
 
 from fastapi import Depends, FastAPI
 from sqlalchemy.orm import Session
 
 from src.database import SessionLocal, engine
-from src.models import Base
+from src.models import Base, Search
 from src.tools import insert_data, get_data
+from src.actions import create_search
 
 Base.metadata.create_all(bind=engine)
 
@@ -25,38 +29,46 @@ async def get_db():
         db.close()
 
 
-async def get_response_a(start_date: int, end_date: int, db: Session):
-    req = requests.post(f'http://127.0.0.1:9001/search/from/{start_date}/to/{end_date}/')
-    json_data = req.json()
-    booking_list = list(json_data)
+async def get_response_a(loop: asyncio.AbstractEventLoop, booking_id: int, db: Session):
+    future = loop.run_in_executor(None, requests.post, f'http://127.0.0.1:9001/search/{booking_id}/')
+    req = await future
+    booking = req.json()
 
-    await insert_data(db, booking_list)
-
-
-async def get_response_b(start_date: int, end_date: int, db: Session):
-    req = requests.post(f'http://127.0.0.1:9002/search/from/{start_date}/to/{end_date}/')
-    json_data = req.json()
-    booking_list = list(json_data)
-
-    await insert_data(db, booking_list)
+    await insert_data(db, booking, booking_id)
 
 
-async def get_responses(start_date: int, end_date: int, db: Session):
-    await get_response_a(start_date, end_date, db)
-    await get_response_b(start_date, end_date, db)
+async def get_response_b(loop: asyncio.AbstractEventLoop, booking_id: int, db: Session):
+    future = loop.run_in_executor(None, requests.post, f'http://127.0.0.1:9002/search/{booking_id}/')
+    req = await future
+    booking = req.json()
+
+    await insert_data(db, booking, booking_id)
 
 
-@app.post('/search/from/{start_date}/end/{end_date}')
-async def search(start_date: int, end_date: int, db: Session = Depends(get_db)):
-    await get_responses(start_date, end_date, db)
+@app.post('/search/{booking_id_a}/{booking_id_b}')
+async def search(booking_id_a: int, booking_id_b: int, db: Session = Depends(get_db)):
+    loop = asyncio.get_event_loop()
+    await create_search(db, {'id': uuid.uuid4(),
+                             'status': 'PENDING',
+                             'booking_ids': ''})
+    await asyncio.gather(get_response_a(loop, booking_id_a, db),
+                         get_response_b(loop, booking_id_b, db))
 
 
-@app.post('/search/{booking_id}')
-async def search(booking_id: int, db: Session = Depends(get_db)):
-    res = await get_data(db, booking_id)
-    await asyncio.sleep(30)
-    return res
+# @app.get('/results/{search_id}/{currency}')
+# async def search(search_id: uuid.uuid4, currency: str):
+#     res = await get_data(db, booking_id)
+#     await asyncio.sleep(30)
+#     return res
+#     pass
+
+
+@app.get('/currency')
+async def currency():
+    request = requests.get('https://www.nationalbank.kz/rss/get_rates.cfm?fdate=26.10.2021')
+    data = request.json()
+    return data
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=9000)
+    uvicorn.run(app, host="127.0.0.1", port=9000)

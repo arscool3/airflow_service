@@ -39,3 +39,11 @@ class Segment(BaseModel):
     baggage: str = ''
     dep_at: datetime
     arr_at: datetime
+
+
+class Search(BaseModel):
+    class Config:
+        orm_mode = True
+    id: int
+    status: str = 'PENDING'
+    segments_ids: str

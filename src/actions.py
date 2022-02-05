@@ -55,3 +55,12 @@ async def create_booking(future: asyncio.Future, db: Session, booking: dict):
 async def get_booking(future: asyncio.Future, db: Session, booking_id: int):
     query = db.query(models.Booking).filter(models.Booking.id == booking_id).first()
     future.set_result(query)
+
+
+async def create_search(db: Session, search: dict):
+    db_search = models.Search(id=search['id'],
+                              status=search['status'],
+                              booking_ids=search['booking_ids'])
+    db.add(db_search)
+    db.commit()
+    db.refresh(db_search)

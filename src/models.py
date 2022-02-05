@@ -1,4 +1,5 @@
 import sqlalchemy as sa
+from sqlalchemy.dialects.postgresql import UUID
 
 from src.database import Base
 
@@ -33,6 +34,14 @@ class Segment(Base):
     arr_at = sa.Column(sa.DateTime(timezone=True))
     arr_airport = sa.Column(sa.String)
     baggage = sa.Column(sa.String)
+
+
+class Search(Base):
+    __tablename__ = 'search'
+
+    id = sa.Column(UUID(as_uuid=True), primary_key=True)
+    status = sa.Column(sa.String, default='PENDING')
+    booking_ids = sa.Column(sa.String)
 
 
 class FlightSegment(Base):
