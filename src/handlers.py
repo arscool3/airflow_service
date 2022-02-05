@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 from src.database import SessionLocal, engine
 from src.models import Base, Search
 from src.tools import insert_data, get_data
-from src.actions import create_search
+from src.actions import create_search, create_currency
 
 Base.metadata.create_all(bind=engine)
 
@@ -63,11 +63,13 @@ async def search(booking_id_a: int, booking_id_b: int, db: Session = Depends(get
 #     pass
 
 
-@app.get('/currency')
-async def currency():
+@app.post('/currency')
+async def currency(db: Session = Depends(get_db)):
     request = requests.get('https://www.nationalbank.kz/rss/get_rates.cfm?fdate=26.10.2021')
-    data = request.json()
-    return data
+    data = xmltodict.parse(request.text)
+    for currency in data['rates']['item']:
+        await create_currency(db, {'title': currency['title'],
+                                   'amount': currency['description']})
 
 
 if __name__ == "__main__":

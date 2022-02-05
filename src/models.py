@@ -44,6 +44,13 @@ class Search(Base):
     booking_ids = sa.Column(sa.String)
 
 
+class Currency(Base):
+    __tablename__ = 'currency'
+    id = sa.Column(sa.Integer, primary_key=True, index=True, autoincrement=True)
+    title = sa.Column(sa.String)
+    amount = sa.Column(sa.DECIMAL)
+
+
 class FlightSegment(Base):
     __tablename__ = 'flight_segment'
     id = sa.Column(sa.Integer, primary_key=True, index=True, autoincrement=True)

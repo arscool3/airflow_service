@@ -64,3 +64,11 @@ async def create_search(db: Session, search: dict):
     db.add(db_search)
     db.commit()
     db.refresh(db_search)
+
+
+async def create_currency(db: Session, currency: dict):
+    db_currency = models.Currency(title=currency['title'],
+                                  amount=currency['amount'])
+    db.add(db_currency)
+    db.commit()
+    db.refresh(db_currency)
