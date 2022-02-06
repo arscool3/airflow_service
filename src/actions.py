@@ -51,27 +51,18 @@ async def update_search(db: database, search_id: uuid.uuid4):
 
 
 async def get_search(future: asyncio.Future, db: database, search_id):
-    stmt = select(BookingTbl.c.id,
-                  BookingTbl.c.refundable,
-                  BookingTbl.c.validating_airline,
-                  BookingTbl.c.currency,
-                  BookingTbl.c.total_price).where(SearchBookingTbl.c.search_id == search_id,
-                                                  BookingTbl.c.id == SearchBookingTbl.c.booking_id)
-    bookings = await db.execute(stmt).fetchall()
-    unique_bookings = set(bookings)
+    stmt = select(BookingTbl).where(SearchBookingTbl.c.search_id == search_id,
+                                    BookingTbl.c.id == SearchBookingTbl.c.booking_id)
+    bookings = await db.fetch_all(stmt)
+    unique_bookings = []
+    for row in bookings:
+        unique_bookings.append(dict(zip(row.keys(), row.values())))
     res = []
     for booking in unique_bookings:
-        course_stmt = select(CurrencyTbl.c.amount).where(CurrencyTbl.c.title == booking['currency'])
-        course = await db.execute(course_stmt).first()
-        if course is None:
-            amount = booking['total_price']
-        else:
-            amount = booking['total_price'] * course['amount']
+        currency = await get_currency_by_title(database, title=booking['currency'])
+        amount = booking['total_price'] * currency.amount
         booking_dict = {'id': booking['id'],
-                        'refundable': booking['refundable'],
-                        'validating_airline': booking['validating_airline'],
-                        'total_price': amount,
-                        'currency': 'KZT'}
+                        'booking': Booking(booking['refundable'], booking['validating_airline'], amount, 'KZT')}
         res.append(booking_dict)
     future.set_result(res)
 
