@@ -47,11 +47,6 @@ async def update_search(db: database, search_id: uuid.uuid4):
     await db.execute(stmt)
 
 
-async def get_booking(future: asyncio.Future, db: database, booking_id: int):
-    query = db.query(BookingTbl).filter(BookingTbl.c.id == booking_id).first()
-    future.set_result(query)
-
-
 async def get_search(future: asyncio.Future, db: database, search_id):
     stmt = select(BookingTbl.c.id,
                   BookingTbl.c.refundable,
@@ -59,11 +54,12 @@ async def get_search(future: asyncio.Future, db: database, search_id):
                   BookingTbl.c.currency,
                   BookingTbl.c.total_price).where(SearchBookingTbl.c.search_id == search_id,
                                                   BookingTbl.c.id == SearchBookingTbl.c.booking_id)
-    bookings = set(db.execute(stmt).fetchall())
+    bookings = await db.execute(stmt).fetchall()
+    unique_bookings = set(bookings)
     res = []
-    for booking in bookings:
+    for booking in unique_bookings:
         course_stmt = select(CurrencyTbl.c.amount).where(CurrencyTbl.c.title == booking['currency'])
-        course = db.execute(course_stmt).first()
+        course = await db.execute(course_stmt).first()
         if course is None:
             amount = booking['total_price']
         else:
