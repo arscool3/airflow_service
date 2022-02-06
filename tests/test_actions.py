@@ -6,9 +6,11 @@ import pytest
 import sqlalchemy as sa
 import asyncio
 
-from src.models import Search, Segment
-from src.database import SearchTbl, SegmentTbl
-from src.actions import create_flight, create_search, create_segment
+from decimal import Decimal
+
+from src.models import Search, Segment, Flight, BookingFlight, Booking
+from src.database import SearchTbl, SegmentTbl, FlightSegmentTbl, FlightTbl, BookingTbl
+from src.actions import create_flight, create_search, create_segment, create_booking, update_search
 
 SQLALCHEMY_DATABASE_URL = "postgresql://admin:admin@localhost:5438/airflow_service"
 
@@ -20,20 +22,20 @@ metadata = sa.MetaData()
 @pytest.mark.asyncio
 async def test_create_flight():
     await database.connect()
+    booking = Booking(refundable=True,
+                      validating_airline='TEST',
+                      total_price=Decimal(500),
+                      currency="KZT")
+    insert_stmt = sa.insert(BookingTbl).values(booking.as_dict())
+    booking_id = await database.execute(insert_stmt)
     future = asyncio.Future()
-    await create_flight(future, database, {'duration': 1500})
-
-
-@pytest.mark.asyncio
-async def test_create_search():
-    await database.connect()
-    _id = uuid.uuid4()
-    search = Search(_id, 'TEST')
-    await create_search(database, search)
-    stmt = sa.select(SearchTbl.c.status,
-                     SearchTbl.c.id).where(SearchTbl.c.id == _id)
+    flight = Flight(1500)
+    await create_flight(future, database, flight, booking_id)
+    flight_id = await future
+    stmt = sa.select(FlightTbl.c.duration).where(FlightTbl.c.id == flight_id)
     res = await database.fetch_one(stmt)
-    assert res['status'] == 'TEST'
+    res_flight = Flight(**res)
+    assert res_flight.duration == 1500
 
 
 @pytest.mark.asyncio
@@ -49,8 +51,13 @@ async def test_create_segment():
                       arr_at=str(cur_date),
                       arr_airport='TEST',
                       baggage='TEST')
+
+    flight = Flight(duration=1500)
+    insert_stmt = sa.insert(FlightTbl).values(flight.as_dict())
+    flight_id = await database.execute(insert_stmt)
+
     future = asyncio.Future()
-    await create_segment(future, database, segment, 1)
+    await create_segment(future, database, segment, flight_id)
     segment_id = await future
     stmt = sa.select(SegmentTbl.c.operating_airline,
                      SegmentTbl.c.marketing_airline,
@@ -73,5 +80,55 @@ async def test_create_segment():
     assert res_segment.arr_airport == segment.arr_airport
     assert res_segment.arr_at == segment.arr_at
     assert res_segment.baggage == segment.baggage
+
+
+@pytest.mark.asyncio
+async def test_create_booking():
+    await database.connect()
+    booking = Booking(refundable=True,
+                      validating_airline='TEST',
+                      total_price=Decimal(500),
+                      currency='KZT')
+
+    search = Search(id=uuid.uuid4(), status='TEST')
+    insert_stmt = sa.insert(SearchTbl).values(search.as_dict())
+    await database.execute(insert_stmt)
+
+    future = asyncio.Future()
+    await create_booking(future, database, booking, search.id)
+    booking_id = await future
+    stmt = sa.select(BookingTbl.c.refundable,
+                     BookingTbl.c.validating_airline,
+                     BookingTbl.c.total_price,
+                     BookingTbl.c.currency).where(BookingTbl.c.id == booking_id)
+    res = await database.fetch_one(stmt)
+    res_booking = Booking(**res)
+    assert res_booking.refundable == booking.refundable
+    assert res_booking.validating_airline == booking.validating_airline
+    assert res_booking.total_price == booking.total_price
+    assert res_booking.currency == booking.currency
+
+
+@pytest.mark.asyncio
+async def test_create_search():
+    await database.connect()
+    _id = uuid.uuid4()
+    search = Search(_id, 'PENDING')
+    await create_search(database, search)
+    stmt = sa.select(SearchTbl.c.status).where(SearchTbl.c.id == _id)
+    res = await database.fetch_one(stmt)
+    assert res['status'] == 'PENDING'
+
+
+@pytest.mark.asyncio
+async def test_update_search():
+    await database.connect()
+    search = Search(uuid.uuid4(), 'PENDING')
+    insert_stmt = sa.insert(SearchTbl).values(search.as_dict())
+    await database.execute(insert_stmt)
+    await update_search(database, search.id)
+    stmt = sa.select(SearchTbl.c.status).where(SearchTbl.c.id == search.id)
+    res = await database.fetch_one(stmt)
+    assert res['status'] == 'COMPLETED'
 
 

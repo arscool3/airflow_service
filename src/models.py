@@ -8,17 +8,29 @@ class FlightSegment:
         self.flight_id = flight_id
         self.segment_id = segment_id
 
+    def as_dict(self):
+        return dict(flight_id=self.flight_id,
+                    segment_id=self.segment_id)
+
 
 class BookingFlight:
     def __init__(self, booking_id: int, flight_id: int):
         self.booking_id = booking_id
         self.flight_id = flight_id
 
+    def as_dict(self):
+        return dict(booking_id=self.booking_id,
+                    flight_id=self.f)
+
 
 class SearchBooking:
     def __init__(self, search_id: uuid.uuid4, booking_id: int):
         self.search_id = search_id
         self.booking_id = booking_id
+
+    def as_dict(self):
+        return dict(search_id=self.search_id,
+                    booking_id=self.booking_id)
 
 
 class Search:
@@ -39,10 +51,19 @@ class Booking:
         self.total_price = total_price
         self.currency = currency
 
+    def as_dict(self):
+        return dict(refundable=self.refundable,
+                    validating_airline=self.validating_airline,
+                    total_price=self.total_price,
+                    currency=self.currency)
+
 
 class Flight:
     def __init__(self, duration: int):
         self.duration = duration
+
+    def as_dict(self):
+        return dict(duration=self.duration)
 
 
 class Segment:
@@ -75,3 +96,7 @@ class Currency:
     def __init__(self, title: str, amount: Decimal):
         self.title = title
         self.amount = amount
+
+    def as_dict(self):
+        return dict(title=self.title,
+                    amount=self.amount)

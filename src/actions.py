@@ -30,8 +30,8 @@ async def create_segment(future: asyncio.Future, db: database, segment: Segment,
     future.set_result(segment_id)
 
 
-async def create_booking(future: asyncio.Future, db: database, booking: dict, search_id):
-    booking_stmt = insert(BookingTbl).values(**booking)
+async def create_booking(future: asyncio.Future, db: database, booking: Booking, search_id):
+    booking_stmt = insert(BookingTbl).values(booking.as_dict())
     booking_id = await db.execute(booking_stmt)
 
     db_search_booking = insert(SearchBookingTbl).values(search_id=search_id,
@@ -43,7 +43,6 @@ async def create_booking(future: asyncio.Future, db: database, booking: dict, se
 async def create_search(db: database, search: Search):
     db_search = insert(SearchTbl).values(search.as_dict())
     await db.execute(db_search)
-
 
 
 async def update_search(db: database, search_id: uuid.uuid4):
