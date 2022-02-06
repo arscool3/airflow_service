@@ -33,15 +33,14 @@ SearchBookingTbl = sa.Table(
     sa.Column("search_id", UUID(as_uuid=True), sa.ForeignKey("search.id")),
     sa.Column("booking_id", sa.Integer, sa.ForeignKey("booking.id"))
 )
-
-search = sa.Table(
+SearchTbl = sa.Table(
     "search",
     metadata,
-    sa.Column("search", UUID(as_uuid=True), primary_key=True),
+    sa.Column("id", UUID(as_uuid=True), primary_key=True),
     sa.Column("status", sa.String, default="PENDING")
 )
 
-booking = sa.Table(
+BookingTbl = sa.Table(
     "booking",
     metadata,
     sa.Column("id", sa.Integer, autoincrement=True, primary_key=True),
@@ -52,14 +51,14 @@ booking = sa.Table(
 
 )
 
-flight = sa.Table(
+FlightTbl = sa.Table(
     "flight",
     metadata,
     sa.Column("id", sa.Integer, autoincrement=True, primary_key=True),
     sa.Column("duration", sa.Integer)
 )
 
-segment = sa.Table(
+SegmentTbl = sa.Table(
     "segment",
     metadata,
     sa.Column("id", sa.Integer, autoincrement=True, primary_key=True),
@@ -67,14 +66,14 @@ segment = sa.Table(
     sa.Column("marketing_airline", sa.String),
     sa.Column("flight_number", sa.Integer),
     sa.Column("equipment", sa.String),
-    sa.Column("dep_at", sa.DateTime(timezone=True), nullable=True),
+    sa.Column("dep_at", sa.String),
     sa.Column("dep_airport", sa.String),
-    sa.Column("arr_at", sa.DateTime(timezone=True), nullable=True),
+    sa.Column("arr_at", sa.String),
     sa.Column("arr_airport", sa.String),
     sa.Column("baggage", sa.String)
 )
 
-currency = sa.Table(
+CurrencyTbl = sa.Table(
     "currency",
     metadata,
     sa.Column("id", sa.Integer, autoincrement=True, primary_key=True),

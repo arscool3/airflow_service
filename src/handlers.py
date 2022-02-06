@@ -10,7 +10,7 @@ from sqlalchemy import select
 from fastapi import Depends, FastAPI
 from sqlalchemy.orm import Session
 
-from src.database import metadata, engine, database, segment
+from src.database import metadata, engine, database
 # from src.models import Base, Search
 from src.tools import insert_data, get_data
 from src.actions import create_search, create_currency, get_search, create_segment, update_search
