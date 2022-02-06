@@ -3,21 +3,26 @@ import uuid
 
 import databases
 import pytest
+import json
 import sqlalchemy as sa
 import asyncio
 
 from decimal import Decimal
 
+from src.tools import insert_data
 from src.models import Search, Segment, Flight, Currency, Booking
 from src.database import SearchTbl, SegmentTbl, CurrencyTbl, FlightTbl, BookingTbl
 from src.actions import (create_flight, create_search, create_segment, create_booking, update_search,
-                         create_currency, get_currency_by_title)
+                         create_currency, get_currency_by_title, get_search)
 
 SQLALCHEMY_DATABASE_URL = "postgresql://admin:admin@localhost:5438/airflow_service"
 
 database = databases.Database(SQLALCHEMY_DATABASE_URL)
 
 metadata = sa.MetaData()
+
+file = open('test_data.json')
+json_data = json.load(file)
 
 
 @pytest.mark.asyncio
@@ -156,3 +161,19 @@ async def test_get_currency_by_title():
 
     assert res_currency.amount == currency.amount
     assert res_currency.title == currency.title
+
+
+@pytest.mark.asyncio
+async def test_insert_data():
+    await database.connect()
+
+    search = Search(id=uuid.uuid4(), status='PENDING')
+    stmt = sa.insert(SearchTbl).values(search.as_dict())
+    await database.execute(stmt)
+
+    await insert_data(database, json_data, search.id)
+    booking_stmt = sa.select(BookingTbl)
+    res = await database.fetch_one(booking_stmt)
+    assert res['validating_airline'] == 'KC'
+    assert res['total_price'] == Decimal('291.84')
+    assert res['currency'] == 'EUR'

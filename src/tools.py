@@ -5,9 +5,10 @@ from sqlalchemy.orm import Session
 
 from src.models import Booking, Segment, Flight
 from src.actions import create_flight, create_booking, create_segment
+from src.database import database
 
 
-async def insert_data(db: Session, booking, search_id: uuid.uuid4):
+async def insert_data(db: database, booking, search_id: uuid.uuid4):
     booking_ins = Booking(booking['refundable'],
                           booking['validating_airline'],
                           booking['pricing']['total'],
@@ -32,5 +33,3 @@ async def insert_data(db: Session, booking, search_id: uuid.uuid4):
                                   segment['arr']['at'])
             segment_future = asyncio.Future()
             await create_segment(segment_future, db, segment_ins, flight_id)
-
-
