@@ -8,6 +8,7 @@ import xmltodict
 from fastapi import FastAPI
 from sqlalchemy.orm import Session
 
+from src.models import Search, Currency
 from src.database import database
 from src.tools import insert_data
 from src.actions import create_search, create_currency, get_search, create_segment, update_search
@@ -46,13 +47,12 @@ async def get_response_b(loop: asyncio.AbstractEventLoop, booking_id: int, searc
 @app.post('/search/{booking_id_a}/{booking_id_b}')
 async def search(booking_id_a: int, booking_id_b: int):
     loop = asyncio.get_event_loop()
-    search_id = uuid.uuid4()
-    await create_search(database, {'id': search_id,
-                                   'status': 'PENDING'})
-    await asyncio.gather(get_response_a(loop, booking_id_a, search_id, database),
-                         get_response_b(loop, booking_id_b, search_id, database))
-    await update_search(database, search_id)
-    return search_id
+    search = Search(uuid.uuid4(), 'PENDING')
+    await create_search(database, search)
+    await asyncio.gather(get_response_a(loop, booking_id_a, search.id, database),
+                         get_response_b(loop, booking_id_b, search.id, database))
+    await update_search(database, search.id)
+    return search.id
 
 
 @app.post('/results/{search_id}/{currency}')
@@ -68,8 +68,8 @@ async def currency():
     request = requests.get('https://www.nationalbank.kz/rss/get_rates.cfm?fdate=26.10.2021')
     data = xmltodict.parse(request.text)
     for currency in data['rates']['item']:
-        await create_currency(database, {'title': currency['title'],
-                                         'amount': currency['description']})
+        ins_currency = Currency(currency['title'], currency['description'])
+        await create_currency(database, ins_currency)
 
 
 if __name__ == "__main__":

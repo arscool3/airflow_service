@@ -8,9 +8,10 @@ import asyncio
 
 from decimal import Decimal
 
-from src.models import Search, Segment, Flight, BookingFlight, Booking
-from src.database import SearchTbl, SegmentTbl, FlightSegmentTbl, FlightTbl, BookingTbl
-from src.actions import create_flight, create_search, create_segment, create_booking, update_search
+from src.models import Search, Segment, Flight, Currency, Booking
+from src.database import SearchTbl, SegmentTbl, CurrencyTbl, FlightTbl, BookingTbl
+from src.actions import (create_flight, create_search, create_segment, create_booking, update_search,
+                         create_currency, get_currency_by_title)
 
 SQLALCHEMY_DATABASE_URL = "postgresql://admin:admin@localhost:5438/airflow_service"
 
@@ -132,3 +133,26 @@ async def test_update_search():
     assert res['status'] == 'COMPLETED'
 
 
+@pytest.mark.asyncio
+async def test_create_currency():
+    await database.connect()
+    currency = Currency('KZT', 1)
+    await create_currency(database, currency)
+    stmt = sa.select(CurrencyTbl.c.title,
+                     CurrencyTbl.c.amount).where(CurrencyTbl.c.title == currency.title)
+    currency_data = await database.fetch_one(stmt)
+    res_currency = Currency(**currency_data)
+    assert res_currency.title == 'KZT'
+    assert res_currency.amount == 1
+
+
+@pytest.mark.asyncio
+async def test_get_currency_by_title():
+    await database.connect()
+    currency = Currency('KZT', 1)
+    stmt = sa.insert(CurrencyTbl).values(currency.as_dict())
+    await database.execute(stmt)
+    res_currency: Currency = await get_currency_by_title(database, currency.title)
+
+    assert res_currency.amount == currency.amount
+    assert res_currency.title == currency.title

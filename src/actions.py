@@ -76,11 +76,12 @@ async def get_search(future: asyncio.Future, db: database, search_id):
     future.set_result(res)
 
 
-async def create_currency(db: database, currency: dict):
-    stmt = insert(CurrencyTbl).values(**currency)
+async def create_currency(db: database, currency: Currency):
+    stmt = insert(CurrencyTbl).values(currency.as_dict())
     await db.execute(stmt)
 
 
-async def get_currency_by_title(db: database, title: str):
-    query = db.query(CurrencyTbl.c.amount).filter(CurrencyTbl.c.title == title).first()
-    return query
+async def get_currency_by_title(db: database, title: str) -> Currency:
+    stmt = select(CurrencyTbl.c.title, CurrencyTbl.c.amount).where(CurrencyTbl.c.title == title)
+    currency_data = await db.fetch_one(stmt)
+    return Currency(**currency_data)
