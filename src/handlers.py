@@ -1,34 +1,21 @@
 import asyncio
-import json
 import uuid
 
 import uvicorn
 import requests
 import xmltodict
 
-from sqlalchemy import select
-from fastapi import Depends, FastAPI
+from fastapi import FastAPI
 from sqlalchemy.orm import Session
 
-from src.database import metadata, engine, database
-# from src.models import Base, Search
-from src.tools import insert_data, get_data
+from src.database import database
+from src.tools import insert_data
 from src.actions import create_search, create_currency, get_search, create_segment, update_search
-
-# metadata.create_all(engine)
 
 app = FastAPI()
 
 bookings = []
 
-
-# async def get_db():
-#     db = SessionLocal()
-#     try:
-#         yield db
-#     finally:
-#         db.close()
-#
 
 @app.on_event('startup')
 async def startup():

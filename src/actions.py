@@ -7,9 +7,12 @@ from sqlalchemy import select, update, insert
 from src.database import (FlightTbl, BookingFlightTbl, SegmentTbl, FlightSegmentTbl,
                           SearchBookingTbl, SearchTbl, CurrencyTbl, BookingTbl)
 
+from src.models import (Flight, BookingFlight, Search, FlightSegment,
+                        SearchBooking, Segment, Currency, Booking)
 
-async def create_flight(future: asyncio.Future, db: database, flight: dict, booking_id: int):
-    flight_stmt = insert(FlightTbl).values(**flight)
+
+async def create_flight(future: asyncio.Future, db: database, flight: Flight, booking_id: int):
+    flight_stmt = insert(FlightTbl).values(flight.as_dict())
     flight_id = await db.execute(flight_stmt)
     booking_flight_stmt = insert(BookingFlightTbl).values(booking_id=booking_id,
                                                           flight_id=flight_id)
@@ -17,8 +20,8 @@ async def create_flight(future: asyncio.Future, db: database, flight: dict, book
     future.set_result(flight_id)
 
 
-async def create_segment(future: asyncio.Future, db: database, segment: dict, flight_id):
-    segment_stmt = insert(SegmentTbl).values(**segment)
+async def create_segment(future: asyncio.Future, db: database, segment: Segment, flight_id):
+    segment_stmt = insert(SegmentTbl).values(segment.as_dict())
     segment_id = await db.execute(segment_stmt)
 
     db_flight_segment = insert(FlightSegmentTbl).values(flight_id=flight_id,
@@ -37,9 +40,10 @@ async def create_booking(future: asyncio.Future, db: database, booking: dict, se
     future.set_result(booking_id)
 
 
-async def create_search(db: database, search: dict):
-    db_search = insert(SearchTbl).values(**search)
+async def create_search(db: database, search: Search):
+    db_search = insert(SearchTbl).values(search.as_dict())
     await db.execute(db_search)
+
 
 
 async def update_search(db: database, search_id: uuid.uuid4):

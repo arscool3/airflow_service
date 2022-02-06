@@ -22,9 +22,14 @@ class SearchBooking:
 
 
 class Search:
-    def __init__(self, status: str):
+    def __init__(self, id: uuid.uuid4, status: str):
         # TODO переделать на Enum
+        self.id = id
         self.status = status
+
+    def as_dict(self):
+        return dict(id=self.id,
+                    status=self.status)
 
 
 class Booking:
@@ -53,6 +58,17 @@ class Segment:
         self.arr_at = arr_at
         self.arr_airport = arr_airport
         self.baggage = baggage
+
+    def as_dict(self):
+        return dict(operating_airline=self.operating_airline,
+                    marketing_airline=self.marketing_airline,
+                    flight_number=self.flight_number,
+                    equipment=self.equipment,
+                    dep_at=self.dep_at,
+                    dep_airport=self.dep_airport,
+                    arr_at=self.arr_at,
+                    arr_airport=self.arr_airport,
+                    baggage=self.baggage)
 
 
 class Currency:

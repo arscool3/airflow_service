@@ -1,3 +1,4 @@
+import uuid
 from datetime import datetime
 from decimal import Decimal
 from pytz import timezone
@@ -24,7 +25,9 @@ def test_init_search_booking():
 
 
 def test_init_search():
-    search = Search(status='PENDING')
+    _id = uuid.uuid4()
+    search = Search(id=_id, status='PENDING')
+    assert search.id == _id
     assert search.status == 'PENDING'
 
 

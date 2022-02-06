@@ -3,7 +3,7 @@ import uuid
 
 from sqlalchemy.orm import Session
 
-from src.actions import create_flight, create_booking, create_segment, get_booking
+from src.actions import create_flight, create_booking, create_segment
 
 
 async def insert_data(db: Session, booking, search_id: uuid.uuid4):
