@@ -56,7 +56,7 @@ async def search(booking_id_a: int, booking_id_b: int):
     return search.id
 
 
-@app.post('/results/{search_id}/{currency}')
+@app.get('/results/{search_id}/{currency}')
 async def get_results(search_id: str, currency: str):
     future = asyncio.Future()
     await get_search(future, database, search_id, currency)
