@@ -50,7 +50,7 @@ async def update_search(db: database, search_id: uuid.uuid4):
     await db.execute(stmt)
 
 
-async def get_search(future: asyncio.Future, db: database, search_id):
+async def get_search(future: asyncio.Future, db: database, search_id, currency):
     stmt = select(BookingTbl).where(SearchBookingTbl.c.search_id == search_id,
                                     BookingTbl.c.id == SearchBookingTbl.c.booking_id)
     bookings = await db.fetch_all(stmt)
@@ -58,9 +58,11 @@ async def get_search(future: asyncio.Future, db: database, search_id):
     for row in bookings:
         unique_bookings.append(dict(zip(row.keys(), row.values())))
     res = []
+    main_currency = await get_currency_by_title(database, currency)
     for booking in unique_bookings:
-        currency = await get_currency_by_title(database, title=booking['currency'])
-        amount = booking['total_price'] * currency.amount
+        currency = await get_currency_by_title(database, booking['currency'])
+
+        amount = booking['total_price'] * currency.amount / main_currency.amount
         booking_dict = {'id': booking['id'],
                         'booking': Booking(booking['refundable'], booking['validating_airline'], amount, 'KZT')}
         res.append(booking_dict)
@@ -75,4 +77,5 @@ async def create_currency(db: database, currency: Currency):
 async def get_currency_by_title(db: database, title: str) -> Currency:
     stmt = select(CurrencyTbl.c.title, CurrencyTbl.c.amount).where(CurrencyTbl.c.title == title)
     currency_data = await db.fetch_one(stmt)
-    return Currency(**currency_data)
+    return Currency(title=currency_data['title'],
+                    amount=currency_data['amount'])

@@ -4,6 +4,7 @@ import uuid
 import uvicorn
 import requests
 import xmltodict
+from decimal import Decimal
 
 from fastapi import FastAPI
 from sqlalchemy.orm import Session
@@ -58,7 +59,7 @@ async def search(booking_id_a: int, booking_id_b: int):
 @app.post('/results/{search_id}/{currency}')
 async def get_results(search_id: str, currency: str):
     future = asyncio.Future()
-    await get_search(future, database, search_id)
+    await get_search(future, database, search_id, currency)
     result = await future
     return result
 
@@ -67,6 +68,7 @@ async def get_results(search_id: str, currency: str):
 async def currency():
     request = requests.get('https://www.nationalbank.kz/rss/get_rates.cfm?fdate=26.10.2021')
     data = xmltodict.parse(request.text)
+    await create_currency(database, Currency('KZT', Decimal(1)))
     for currency in data['rates']['item']:
         ins_currency = Currency(currency['title'], currency['description'])
         await create_currency(database, ins_currency)

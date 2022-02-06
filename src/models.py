@@ -35,7 +35,6 @@ class SearchBooking:
 
 class Search:
     def __init__(self, id: uuid.uuid4, status: str):
-        # TODO переделать на Enum
         self.id = id
         self.status = status
 
