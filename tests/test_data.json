@@ -1,0 +1,67 @@
+{
+  "flights": [
+    {
+      "duration": 6300,
+      "segments": [
+        {
+          "operating_airline": "KC",
+          "marketing_airline": "KC",
+          "flight_number": "951",
+          "equipment": "Airbus A321-100/200",
+          "dep": {
+            "at": "2021-11-12T06:10:00",
+            "airport": "ALA"
+          },
+          "arr": {
+            "at": "2021-11-12T07:55:00",
+            "airport": "NQZ"
+          },
+          "baggage": null
+        }
+      ]
+    },
+    {
+      "duration": 79200,
+      "segments": [
+        {
+          "operating_airline": "KC",
+          "marketing_airline": "KC",
+          "flight_number": "893",
+          "equipment": "Airbus 321 Neo",
+          "dep": {
+            "at": "2021-11-13T07:30:00",
+            "airport": "NQZ"
+          },
+          "arr": {
+            "at": "2021-11-13T08:15:00",
+            "airport": "DME"
+          },
+          "baggage": null
+        },
+        {
+          "operating_airline": "KC",
+          "marketing_airline": "KC",
+          "flight_number": "876",
+          "equipment": "Boeing 767",
+          "dep": {
+            "at": "2021-11-13T22:15:00",
+            "airport": "DME"
+          },
+          "arr": {
+            "at": "2021-11-14T05:30:00",
+            "airport": "ALA"
+          },
+          "baggage": null
+        }
+      ]
+    }
+  ],
+  "refundable": false,
+  "validating_airline": "KC",
+  "pricing": {
+    "total": "291.84",
+    "base": "291.84",
+    "taxes": "0.00",
+    "currency": "EUR"
+  }
+}

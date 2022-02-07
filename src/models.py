@@ -1,72 +1,101 @@
-import sqlalchemy as sa
-from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import relationship
-
-from src.database import Base
+import uuid
+from decimal import Decimal
+from datetime import datetime
 
 
-class FlightSegment(Base):
-    __tablename__ = 'flight_segment'
-    id = sa.Column(sa.Integer, primary_key=True, index=True, autoincrement=True)
-    flight_id = sa.Column(sa.Integer, sa.ForeignKey('flight.id'))
-    segment_id = sa.Column(sa.Integer, sa.ForeignKey('segment.id'))
+class FlightSegment:
+    def __init__(self, flight_id: int, segment_id: int):
+        self.flight_id = flight_id
+        self.segment_id = segment_id
+
+    def as_dict(self):
+        return dict(flight_id=self.flight_id,
+                    segment_id=self.segment_id)
 
 
-class BookingFlight(Base):
-    __tablename__ = 'booking_flight'
-    id = sa.Column(sa.Integer, primary_key=True, index=True, autoincrement=True)
-    booking_id = sa.Column(sa.Integer, sa.ForeignKey('booking.id'))
-    flight_id = sa.Column(sa.Integer, sa.ForeignKey('flight.id'))
+class BookingFlight:
+    def __init__(self, booking_id: int, flight_id: int):
+        self.booking_id = booking_id
+        self.flight_id = flight_id
+
+    def as_dict(self):
+        return dict(booking_id=self.booking_id,
+                    flight_id=self.f)
 
 
-class SearchBooking(Base):
-    __tablename__ = 'search_booking'
-    id = sa.Column(sa.Integer, primary_key=True, index=True, autoincrement=True)
-    search_id = sa.Column(UUID(as_uuid=True), sa.ForeignKey('search.id'))
-    booking_id = sa.Column(sa.Integer, sa.ForeignKey('booking.id'))
+class SearchBooking:
+    def __init__(self, search_id: uuid.uuid4, booking_id: int):
+        self.search_id = search_id
+        self.booking_id = booking_id
+
+    def as_dict(self):
+        return dict(search_id=self.search_id,
+                    booking_id=self.booking_id)
 
 
-class Search(Base):
-    __tablename__ = 'search'
+class Search:
+    def __init__(self, id: uuid.uuid4, status: str):
+        self.id = id
+        self.status = status
 
-    id = sa.Column(UUID(as_uuid=True), primary_key=True)
-    status = sa.Column(sa.String, default='PENDING')
-
-
-class Booking(Base):
-    __tablename__ = "booking"
-
-    id = sa.Column(sa.Integer, autoincrement=True, primary_key=True, index=True)
-    refundable = sa.Column(sa.Boolean)
-    validating_airline = sa.Column(sa.String)
-    total_price = sa.Column(sa.DECIMAL)
-    currency = sa.Column(sa.String)
+    def as_dict(self):
+        return dict(id=self.id,
+                    status=self.status)
 
 
-class Flight(Base):
-    __tablename__ = "flight"
+class Booking:
+    def __init__(self, refundable: bool, validating_airline: str, total_price: Decimal, currency: str):
+        self.refundable = refundable
+        self.validating_airline = validating_airline
+        self.total_price = total_price
+        self.currency = currency
 
-    id = sa.Column(sa.Integer, autoincrement=True, primary_key=True, index=True)
-    duration = sa.Column(sa.Integer)
-
-
-class Segment(Base):
-    __tablename__ = 'segment'
-
-    id = sa.Column(sa.Integer, autoincrement=True, primary_key=True, index=True)
-    operating_airline = sa.Column(sa.String)
-    marketing_airline = sa.Column(sa.String)
-    flight_number = sa.Column(sa.Integer)
-    equipment = sa.Column(sa.String)
-    dep_at = sa.Column(sa.DateTime(timezone=True), nullable=True)
-    dep_airport = sa.Column(sa.String)
-    arr_at = sa.Column(sa.DateTime(timezone=True), nullable=True)
-    arr_airport = sa.Column(sa.String)
-    baggage = sa.Column(sa.String)
+    def as_dict(self):
+        return dict(refundable=self.refundable,
+                    validating_airline=self.validating_airline,
+                    total_price=self.total_price,
+                    currency=self.currency)
 
 
-class Currency(Base):
-    __tablename__ = 'currency'
-    id = sa.Column(sa.Integer, primary_key=True, index=True, autoincrement=True)
-    title = sa.Column(sa.String)
-    amount = sa.Column(sa.DECIMAL)
+class Flight:
+    def __init__(self, duration: int):
+        self.duration = duration
+
+    def as_dict(self):
+        return dict(duration=self.duration)
+
+
+class Segment:
+    def __init__(self, operating_airline: str, marketing_airline: str,
+                 flight_number: int, equipment: str, dep_at: datetime,
+                 dep_airport: str, arr_at: datetime, arr_airport: str, baggage: str):
+        self.operating_airline = operating_airline
+        self.marketing_airline = marketing_airline
+        self.flight_number = flight_number
+        self.equipment = equipment
+        self.dep_at = dep_at
+        self.dep_airport = dep_airport
+        self.arr_at = arr_at
+        self.arr_airport = arr_airport
+        self.baggage = baggage
+
+    def as_dict(self):
+        return dict(operating_airline=self.operating_airline,
+                    marketing_airline=self.marketing_airline,
+                    flight_number=self.flight_number,
+                    equipment=self.equipment,
+                    dep_at=self.dep_at,
+                    dep_airport=self.dep_airport,
+                    arr_at=self.arr_at,
+                    arr_airport=self.arr_airport,
+                    baggage=self.baggage)
+
+
+class Currency:
+    def __init__(self, title: str, amount: Decimal):
+        self.title = title
+        self.amount = amount
+
+    def as_dict(self):
+        return dict(title=self.title,
+                    amount=self.amount)
