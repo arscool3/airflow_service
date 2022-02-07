@@ -1,6 +1,6 @@
 # airflow_service
 
-Устновка зависимостец
+Устновка зависимостей
 ------
 
 `pip install requirements.txt`
@@ -79,10 +79,6 @@ ______
 * **URL**
 
     `/currency`
-  
-  search_id - идентификатор запроса
-  
-  currency - валюта запроса
   
   
 * **Cоздание**
